@@ -16,3 +16,14 @@ if ! grep -q "fs.inotify.max_user_instances" /etc/sysctl.conf; then
   echo "fs.inotify.max_user_instances = 512" | sudo tee -a /etc/sysctl.conf
 fi
 echo "Inotify limits will auto-apply on each system start."
+
+# Install Telepresence CLI
+echo "Installing Telepresence CLI..."
+if command -v telepresence &> /dev/null; then
+  echo "Telepresence already installed: $(telepresence version)"
+else
+  curl -fL https://app.getambassador.io/download/tel2/linux/amd64/latest/telepresence -o /tmp/telepresence
+  chmod +x /tmp/telepresence
+  sudo mv /tmp/telepresence /usr/local/bin/telepresence
+  echo "Telepresence CLI installed: $(telepresence version)"
+fi

@@ -21,10 +21,19 @@ echo "Applying ArgoCD PVCs"
 kubectl apply -f "${SCRIPT_DIR}/argocd/kind-pvc.yaml"
 
 helm repo add argo https://argoproj.github.io/argo-helm
+helm repo add datawire https://app.getambassador.io
 helm repo update
 
 helm install argocd argo/argo-cd \
   --namespace argocd \
   --version 9.4.16 \
   --values "${SCRIPT_DIR}/argocd/sandbox-values.yaml" \
+  --wait
+
+# 4. Install Telepresence Traffic Manager
+echo "Installing Telepresence Traffic Manager"
+kubectl create namespace telepresence
+helm install traffic-manager datawire/telepresence \
+  --namespace telepresence \
+  --values "${SCRIPT_DIR}/helm-values/telepresence-values.yaml" \
   --wait

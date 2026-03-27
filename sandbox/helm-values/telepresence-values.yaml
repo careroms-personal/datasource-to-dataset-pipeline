@@ -1,0 +1,7 @@
+tolerations:
+  - key: node-role
+    value: app
+    effect: NoSchedule
+
+nodeSelector:
+  node-role: app
