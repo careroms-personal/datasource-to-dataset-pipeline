@@ -1,0 +1,10 @@
+# Program already detect file base directory
+# subfolder is same as main section name
+datasources:
+  - name: prometheus_sample
+  
+analysis:
+  - name: stabilize_sample
+
+datasets:
+  - name: lstm_sample
