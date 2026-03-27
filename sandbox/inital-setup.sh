@@ -7,7 +7,7 @@ CONTEXT_NAME="kind-${CLUSTER_NAME}"
 
 # 1. Create kind cluster
 echo "Creating kind cluster: ${CLUSTER_NAME}"
-kind create cluster --config "${SCRIPT_DIR}/kind-cluster.yaml"
+kind create cluster --config "${SCRIPT_DIR}/kind_config/kind-cluster.yaml"
 
 # 2. Set kubectl context
 echo "Switching kubectl context to ${CONTEXT_NAME}"
