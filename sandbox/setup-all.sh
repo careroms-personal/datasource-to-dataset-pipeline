@@ -86,7 +86,28 @@ else
   echo "=== KIND already installed: $(kind version) ==="
 fi
 
-# --- 5. Kind cluster + ArgoCD ---
+# --- 5. kubefwd ---
+if ! command -v kubefwd &>/dev/null; then
+  echo "=== Installing kubefwd ==="
+  ARCH="$(uname -m)"
+  case "${ARCH}" in
+    x86_64)  KUBEFWD_ARCH="amd64" ;;
+    aarch64) KUBEFWD_ARCH="arm64" ;;
+    *)
+      echo "❌ Unsupported architecture: ${ARCH}"
+      exit 1
+      ;;
+  esac
+  KUBEFWD_VERSION="v1.25.13"
+  curl -Lo /tmp/kubefwd.deb "https://github.com/txn2/kubefwd/releases/download/${KUBEFWD_VERSION}/kubefwd_${KUBEFWD_ARCH}.deb"
+  sudo dpkg -i /tmp/kubefwd.deb
+  rm /tmp/kubefwd.deb
+  echo "kubefwd installed: $(kubefwd version 2>&1 | head -1)"
+else
+  echo "=== kubefwd already installed: $(kubefwd version 2>&1 | head -1) ==="
+fi
+
+# --- 6. Kind cluster + ArgoCD ---
 CLUSTER_NAME="d2d-sandbox"
 CONTEXT_NAME="kind-${CLUSTER_NAME}"
 
