@@ -7,9 +7,11 @@ from pydantic import ValidationError
 
 from base_modules.models.d2d_pipeline import D2DPipelineConfig
 
+from .executors.datasources.executor import DatasourcesExecutor
+
 class Processor:
   def __init__(self, config_path: str):
-    self.config = self._load_and_validate_config(config_path=config_path)
+    self.d2d_pipeline_config = self._load_and_validate_config(config_path=config_path)
 
   def _load_and_validate_config(self, config_path: str) -> D2DPipelineConfig:
     if not Path(config_path).exists():
@@ -32,4 +34,7 @@ class Processor:
       sys.exit(1)
 
   def execute(self):
-    pass
+    for pipeline in self.d2d_pipeline_config.pipelines:
+      print(f"\n▶ Pipeline: {pipeline.name}")
+      d_source_executor = DatasourcesExecutor(self.d2d_pipeline_config.config_file_dir, pipeline)
+      d_source_output = d_source_executor.execute()

@@ -1,15 +1,18 @@
 import os
 import yaml
 
+from typing import Any, Dict, List
+
 from base_modules.base_executor import BaseExecutor
-from base_modules.models.d2d_pipeline import D2DPipelineConfig
+from base_modules.models.d2d_pipeline import PipelineConfig
 from base_modules.models.datasources.prometheus import PrometheusDatasourceConfig
+from processor.executors.datasources.prometheus_executor import PrometheusDatasourceExecutor
 
 
 class DatasourcesExecutor(BaseExecutor):
-  def __init__(self, d2d_pipeline_config: D2DPipelineConfig):
-    self.config_file_dir = d2d_pipeline_config.config_file_dir
-    self.datasources = d2d_pipeline_config.datasources
+  def __init__(self, config_file_dir: str, pipeline: PipelineConfig):
+    self.config_file_dir = config_file_dir
+    self.datasources = pipeline.datasources
 
     self.datasource_types = {
       "prometheus": PrometheusDatasourceConfig
@@ -37,11 +40,13 @@ class DatasourcesExecutor(BaseExecutor):
 
     return model_class(**yaml_data)
 
-  def _call_prometheus_executor(self, name: str):
-    pass
+  def _call_prometheus_executor(self, config: PrometheusDatasourceConfig) -> List[Any]:
+    return PrometheusDatasourceExecutor(config).execute()
 
-  def execute(self):
+  def execute(self) -> Dict[str, Dict[str, List[Any]]]:
+    results = {}
     for d_source in self.datasources:
       config = self._prepare_datasource(d_source.name)
       executor_fn = self.datasource_executors.get(config.type)
-      executor_fn(d_source.name)
+      results[d_source.name] = executor_fn(config)
+    return results

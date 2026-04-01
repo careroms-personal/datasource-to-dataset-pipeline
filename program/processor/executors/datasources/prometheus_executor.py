@@ -1,12 +1,11 @@
+import requests
+
 from datetime import datetime, timezone
 from dateutil.relativedelta import relativedelta
-from typing import List
+from typing import Any, Dict, List
 
 from base_modules.base_executor import BaseExecutor
 from base_modules.models.datasources.prometheus import (
-  ClientConfig,
-  OutputConfig,
-  QueryResultExport,
   RangeConfig,
   PrometheusDatasourceConfig,
   PrometheusQueryConfig,
@@ -81,7 +80,7 @@ class PrometheusDatasourceExecutor(BaseExecutor):
         promql=q.promql,
         client=client,
         output_config=output,
-        query_result_export=export,
+        export_metric=export.export_metric,
       ))
 
     for q in self.config.queries.range:
@@ -104,19 +103,65 @@ class PrometheusDatasourceExecutor(BaseExecutor):
           step=step,
           client=client,
           output_config=output,
-          query_result_export=export,
+          export_metric=export.export_metric,
         ))
 
-  def _query(self, qc: PrometheusQueryConfig):
-    pass
+  def _request(self, url: str, params: Dict, timeout: int) -> Any:
+    response = requests.get(url, params=params, timeout=timeout)
+    response.raise_for_status()
 
-  def _query_range(self, qc: PrometheusQueryConfig):
-    pass
+    return response.json()
 
-  def execute(self):
+  def _export_metric(self, qc: PrometheusQueryConfig, response: Any) -> Any:
+    export_metrics = qc.export_metric
+    if not export_metrics or all(m.name == "" for m in export_metrics):
+      return response
+
+    for series in response.get("data", {}).get("result", []):
+      metric = series.get("metric", {})
+      filtered = {}
+      for em in export_metrics:
+        if em.name in metric:
+          key = em.override if em.override else em.name
+          filtered[key] = metric[em.name]
+      series["metric"] = filtered
+
+    return response
+
+  def _query(self, qc: PrometheusQueryConfig) -> Any:
+    url = f"{qc.client.url}/{qc.client.api}/query"
+    params = {"query": qc.promql}
+    response = self._request(url, params, qc.client.timeout)
+    self._export_metric(qc, response)
+    return response.get("data", {}).get("result", [])
+
+  def _query_range(self, qc: PrometheusQueryConfig) -> Any:
+    url = f"{qc.client.url}/{qc.client.api}/query_range"
+    params = {
+      "query": qc.promql,
+      "start": qc.start,
+      "end": qc.end,
+      "step": qc.step,
+    }
+    response = self._request(url, params, qc.client.timeout)
+    self._export_metric(qc, response)
+    return response.get("data", {}).get("result", [])
+
+  def execute(self) -> Dict[str, List[Any]]:
     self._build_queries()
+    results: Dict[str, List[Any]] = {}
     for qc in self.query_configs:
+      
       if qc.query_type == "query":
-        self._query(qc)
+        data = self._query(qc)
       else:
-        self._query_range(qc)
+        data = self._query_range(qc)
+
+      if not data:
+        continue
+
+      if qc.name not in results:
+        results[qc.name] = []
+
+      results[qc.name].extend(data)
+    return results

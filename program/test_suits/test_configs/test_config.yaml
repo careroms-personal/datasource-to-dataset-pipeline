@@ -1,2 +1,4 @@
-datasources:
-  - name: sandbox-prometheus
+pipelines:
+  - name: "node_memory_available_analysis"
+    datasources:
+      - name: sandbox-prometheus

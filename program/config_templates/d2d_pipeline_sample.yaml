@@ -6,12 +6,14 @@
 #   datasources/ <name>.yaml   e.g. datasources/prometheus_sample.yaml
 #   analysis/    <name>.yaml   e.g. analysis/metric_sample.yaml
 #   datasets/    <name>.yaml   e.g. datasets/metric_sample.yaml
+pipelines:
+  - name: ""
+    datasources:
+      - name: prometheus_sample   # -> datasources/prometheus_sample.yaml
 
-datasources:
-  - name: prometheus_sample   # -> datasources/prometheus_sample.yaml
+    datasets:
+      - name: metric_sample       # -> datasets/metric_sample.yaml
 
-analysis:
-  - name: metric_sample       # -> analysis/metric_sample.yaml
-
-datasets:
-  - name: metric_sample       # -> datasets/metric_sample.yaml
+    analysis:
+      - name: metric_sample       # -> analysis/metric_sample.yaml
+  

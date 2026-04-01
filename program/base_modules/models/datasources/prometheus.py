@@ -86,4 +86,5 @@ class PrometheusQueryConfig(BaseModel):
   step: Optional[int] = None
   promql: str = ""
   client: ClientConfig = ClientConfig()
-  
+  output_config: OutputConfig = OutputConfig()
+  export_metric: List[ExportMetric] = []
