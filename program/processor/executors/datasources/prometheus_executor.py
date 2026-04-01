@@ -52,14 +52,19 @@ class PrometheusDatasourceExecutor(BaseExecutor):
     if not slice_str:
       yield start, end
       return
-    delta_map = {"h": "hours", "d": "days", "w": "weeks", "m": "months"}
-    unit = slice_str[-1]
-    n = int(slice_str[:-1])
+    delta_map = {"min": "minutes", "h": "hours", "d": "days", "w": "weeks", "m": "months"}
+    
+    unit = "min" if slice_str.endswith("min") else slice_str[-1]
+
+    n = int(slice_str[:-3] if unit == "min" else slice_str[:-1])
+
     kwargs = {delta_map[unit]: n}
     current = start
+
     while current < end:
       next_ = min(current + relativedelta(**kwargs), end)
-      yield current, next_
+      if int(next_.timestamp()) > int(current.timestamp()):
+        yield current, next_
       current = next_
 
   def _build_queries(self):

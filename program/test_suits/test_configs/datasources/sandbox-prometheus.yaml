@@ -13,7 +13,7 @@ global:
       start_time: "1d"
       end_time: "now"
       step: "15s"
-      start_end_slice: "5m"
+      start_end_slice: "5min"
 
   query_result_exports:
     - name: default

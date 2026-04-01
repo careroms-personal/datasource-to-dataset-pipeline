@@ -12,7 +12,7 @@ global:
       start_time: ""      # Fixed datetime, timestamp, or relative: Xh (hours), Xd (days), Xw (weeks=7days), Xm (months, calendar-aware)
       end_time: ""        # "now" for current datetime, or fixed datetime/timestamp
       step: ""            # Minimum step that original datastore can store, e.g. 30s for Mimir (matches Alloy scrape interval)
-      start_end_slice: "" # Slice time range into smaller chunks, e.g. 1h, 6h, 1d (for large range queries)
+      start_end_slice: "" # Slice time range into smaller chunks, e.g. 1h, 6h, 1d (for large range queries) ** m = month, min = minutes
 
   query_result_exports:
     - name: default
