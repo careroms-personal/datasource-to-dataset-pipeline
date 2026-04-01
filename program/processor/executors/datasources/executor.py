@@ -45,8 +45,10 @@ class DatasourcesExecutor(BaseExecutor):
 
   def execute(self) -> Dict[str, Dict[str, List[Any]]]:
     results = {}
+    
     for d_source in self.datasources:
       config = self._prepare_datasource(d_source.name)
       executor_fn = self.datasource_executors.get(config.type)
       results[d_source.name] = executor_fn(config)
+
     return results
