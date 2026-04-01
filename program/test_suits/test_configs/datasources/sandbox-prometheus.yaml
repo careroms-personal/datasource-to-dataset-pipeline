@@ -1,41 +1,52 @@
+type: prometheus
 # Prometheus-compatible datasource — works with Prometheus, Mimir, Thanos, VictoriaMetrics (all use same API + PromQL)
+
 global:
-  client:
-    url: http://prometheus-prometheus-stack-kube-prom-prometheus-0.prometheus-operated:9090
-    api: api/v1
-    timeout: 30 #second
+  clients:
+    - name: default
+      url: http://prometheus-prometheus-stack-kube-prom-prometheus-0.prometheus-operated:9090
+      api: api/v1
+      timeout: 30 #second
 
-  range_config:
-    start_time: ""      # Fixed datetime, timestamp, or relative: Xh (hours), Xd (days), Xw (weeks=7days), Xm (months, calendar-aware)
-    end_time: ""        # "now" for current datetime, or fixed datetime/timestamp
-    step: ""            # Minimum step that original datastore can store, e.g. 30s for Mimir (matches Alloy scrape interval)
-    start_end_slice: "" # Slice time range into smaller chunks, e.g. 1h, 6h, 1d (for large range queries)
+  range_configs:
+    - name: default
+      start_time: "1d"
+      end_time: "now"
+      step: "15s"
+      start_end_slice: "5m"
 
-  query_result_export:
-    export_metric:
-      - name: "" # Column from query result
-        override: "" # If provide, override to new column
+  query_result_exports:
+    - name: default
+      export_metric:
+        - name: "instance"
+          override: ""
 
-  output_config:
-    relative_path: "" # If not set, use config file base relative path
-    print_output: false
-    write_output:
-      - type: csv
-        dir: "result/csv"
-      - type: json
-        dir: "result/json"
+    - name: export_instance_as_job
+      export_metric:
+        - name: "instance"
+          override: "job"
+
+  output_configs:
+    - name: default
+      relative_path: ""
+      print_output: false
+      write_output:
+        - type: csv
+          dir: "result/csv"
+        - type: json
+          dir: "result/json"
+
+    - name: print_only
+      print_output: true
+      write_output: []
 
 queries:
   single:
-    - name: "query_prometheus_health" # Name of query
-      promql: 'up{job="prometheus"}'
-      client: {}
-      output_config: {} #Override global
-      query_result_export: {} #Override global
+    - name: "query_prometheus_health"
+      promql: 'up{pod="prometheus-prometheus-stack-kube-prom-prometheus-0",container="prometheus"}'
+      query_result_exports: "export_instance_as_job"
+      output_configs: "print_only"
 
-  # range:
-  #   - name: "" # Name of query
-  #     promql: "" # Promql
-  #     output_config: {} #Override global
-  #     range_config: {} #Override global
-  #     query_result_export: {} #Override global
+  range:
+    - name: "query_node_memory_free"
+      promql: "node_memory_MemFree_bytes"

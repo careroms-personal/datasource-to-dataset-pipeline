@@ -1,42 +1,47 @@
+type: prometheus
 # Prometheus-compatible datasource — works with Prometheus, Mimir, Thanos, VictoriaMetrics (all use same API + PromQL)
 global:
-  client:
-    url: http://localhost:8080
-    api: api/v1
-    timeout: 30 #second
+  clients:
+    - name: default
+      url: http://localhost:8080
+      api: api/v1
+      timeout: 30 #second
 
-  range_config:
-    start_time: ""      # Fixed datetime, timestamp, or relative: Xh (hours), Xd (days), Xw (weeks=7days), Xm (months, calendar-aware)
-    end_time: ""        # "now" for current datetime, or fixed datetime/timestamp
-    step: ""            # Minimum step that original datastore can store, e.g. 30s for Mimir (matches Alloy scrape interval)
-    start_end_slice: "" # Slice time range into smaller chunks, e.g. 1h, 6h, 1d (for large range queries)
+  range_configs:
+    - name: default       # If change need to set for each query
+      start_time: ""      # Fixed datetime, timestamp, or relative: Xh (hours), Xd (days), Xw (weeks=7days), Xm (months, calendar-aware)
+      end_time: ""        # "now" for current datetime, or fixed datetime/timestamp
+      step: ""            # Minimum step that original datastore can store, e.g. 30s for Mimir (matches Alloy scrape interval)
+      start_end_slice: "" # Slice time range into smaller chunks, e.g. 1h, 6h, 1d (for large range queries)
 
-  query_result_export:
-    export_metric:
-      - name: "" # Column from query result
-        override: "" # If provide, override to new column
+  query_result_exports:
+    - name: default
+      export_metric:
+        - name: "" # Column from query result
+          override: "" # If provide, override to new column
 
-  output_config:
-    relative_path: "" # If not set, use config file base relative path
-    print_output: false
-    write_output:
-      - type: csv
-        dir: "result/csv"
-      - type: json
-        dir: "result/json"
+  output_configs:
+    - name: default
+      relative_path: "" # If not set, use config file base relative path
+      print_output: false
+      write_output:
+        - type: csv
+          dir: "result/csv"
+        - type: json
+          dir: "result/json"
 
 queries:
   single:
     - name: "" # Name of query
       promql: "" # Promql
-      client: {} #Override global
-      output_config: {} #Override global
-      query_result_export: {} #Override global
+      clients: # If not set (null), use default
+      query_result_exports: # If not set (null), use default
+      output_configs: # If not set (null), use default
 
   range:
     - name: "" # Name of query
       promql: "" # Promql
-      output_config: {} #Override global
-      client: {} #Override global
-      range_config: {} #Override global
-      query_result_export: {} #Override global
+      range_configs: # If not set (null), use default
+      clients: # If not set (null), use default
+      query_result_exports: # If not set (null), use default
+      output_configs: # If not set (null), use default

@@ -1,21 +1,21 @@
-from typing import List, Literal, Union, Annotated, Optional
-from pydantic import BaseModel, Field
-
-from .datasources.prometheus import PrometheusConfig
+from typing import List, Optional
+from pydantic import BaseModel
 
 
-class PrometheusDatasource(PrometheusConfig):
-  type: Literal["prometheus"]
+class DatasourceRef(BaseModel):
+  name: str
 
 
-DatasourceConfig = Annotated[
-  Union[PrometheusDatasource],
-  Field(discriminator="type")
-]
+class AnalysisRef(BaseModel):
+  name: str
+
+
+class DatasetRef(BaseModel):
+  name: str
 
 
 class D2DPipelineConfig(BaseModel):
   config_file_dir: Optional[str] = ""
-  datasources: List[DatasourceConfig] = []
-  analysis: Optional[List[str]] = []
-  datasets: Optional[List[str]] = []
+  datasources: List[DatasourceRef] = []
+  analysis: List[AnalysisRef] = []
+  datasets: List[DatasetRef] = []

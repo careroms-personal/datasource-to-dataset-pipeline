@@ -1,14 +1,22 @@
-from typing import List, Optional
+from enum import StrEnum
+from typing import List, Literal, Optional
 from pydantic import BaseModel, Field
 
 
+class OutputType(StrEnum):
+  CSV = "csv"
+  JSON = "json"
+
+
 class ClientConfig(BaseModel):
+  name: str = "default"
   url: str = ""
   api: str = "api/v1"
   timeout: int = 30
 
 
 class RangeConfig(BaseModel):
+  name: str = "default"
   start_time: str = ""
   end_time: str = ""
   step: str = ""
@@ -16,11 +24,12 @@ class RangeConfig(BaseModel):
 
 
 class WriteOutput(BaseModel):
-  type: str = ""
+  type: OutputType
   dir: str = ""
 
 
 class OutputConfig(BaseModel):
+  name: str = "default"
   relative_path: str = ""
   print_output: bool = False
   write_output: List[WriteOutput] = []
@@ -32,19 +41,20 @@ class ExportMetric(BaseModel):
 
 
 class QueryResultExport(BaseModel):
+  name: str = "default"
   export_metric: List[ExportMetric] = []
 
 
 class Query(BaseModel):
   name: str = ""
   promql: str = ""
-  client: Optional[ClientConfig] = None
-  output_config: Optional[OutputConfig] = None
-  query_result_export: Optional[QueryResultExport] = None
+  clients: Optional[str] = None               # ref to named ClientConfig, None = use default
+  output_configs: Optional[str] = None        # ref to named OutputConfig, None = use default
+  query_result_exports: Optional[str] = None  # ref to named QueryResultExport, None = use default
 
 
 class RangeQuery(Query):
-  range_config: Optional[RangeConfig] = None
+  range_configs: Optional[str] = None         # ref to named RangeConfig, None = use default
 
 
 class Queries(BaseModel):
@@ -53,29 +63,27 @@ class Queries(BaseModel):
 
 
 class PrometheusConfig(BaseModel):
-  client: ClientConfig = ClientConfig()
-  range_config: RangeConfig = RangeConfig()
-  query_result_export: QueryResultExport = QueryResultExport()
-  output_config: OutputConfig = OutputConfig()
+  clients: List[ClientConfig] = [ClientConfig()]
+  range_configs: List[RangeConfig] = [RangeConfig()]
+  query_result_exports: List[QueryResultExport] = [QueryResultExport()]
+  output_configs: List[OutputConfig] = [OutputConfig()]
 
 
-class PrometheusDatasourceFile(BaseModel):
+class PrometheusDatasourceConfig(BaseModel):
   """Mirrors the yaml file structure — used for loading and validating datasource config files."""
+  type: Literal["prometheus"]
   global_: PrometheusConfig = Field(default_factory=PrometheusConfig, alias="global")
   queries: Queries = Queries()
 
   model_config = {"populate_by_name": True}
 
 
-class PrometheusQuery(BaseModel):
-  """Flat resolved model for instant query — global + per-query merged, ready for executor."""
-  name: str = ""
+class PrometheusQueryConfig(BaseModel):
+  name: str
+  query_type: Literal["query", "query_range"]
+  start: Optional[int] = None
+  end: Optional[int] = None
+  step: Optional[int] = None
   promql: str = ""
   client: ClientConfig = ClientConfig()
-  output_config: OutputConfig = OutputConfig()
-  query_result_export: QueryResultExport = QueryResultExport()
-
-
-class PrometheusQueryRange(PrometheusQuery):
-  """Flat resolved model for range query — extends PrometheusQuery with range_config."""
-  range_config: RangeConfig = RangeConfig()
+  
