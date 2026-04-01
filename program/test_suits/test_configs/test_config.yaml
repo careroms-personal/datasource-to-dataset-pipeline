@@ -1,0 +1,2 @@
+datasources:
+  - name: sandbox-prometheus

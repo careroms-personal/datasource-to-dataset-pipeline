@@ -8,7 +8,6 @@ def main():
   args = parser.parse_args()
 
   processor = Processor(args.config)
-
   processor.execute()
 
 if __name__ == "__main__":
